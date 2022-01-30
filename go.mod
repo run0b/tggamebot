@@ -5,7 +5,10 @@ go 1.17
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gookit/config/v2 v2.0.27
+	github.com/nicksnyder/go-i18n/v2 v2.1.2
+	golang.org/x/text v0.3.5
 	gopkg.in/tucnak/telebot.v2 v2.5.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -19,5 +22,4 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

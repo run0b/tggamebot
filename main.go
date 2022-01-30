@@ -5,10 +5,15 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 func main() {
+	localizer := CreateLocale()
+	// пример локализации количества кнопок
+	// fmt.Println(localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "button", TemplateData: map[string]interface{}{"Count": 3}, PluralCount: 3}))
+
 	c := CreateConfig()
 	b, err := tb.NewBot(tb.Settings{
 		Token:  c.TGKey,
@@ -48,19 +53,38 @@ func main() {
 
 	rK3Rules := tb.ReplyButton{Text: "Правила "}
 	rK3Des := tb.ReplyButton{Text: "Описание"}
-	rK3Ore := tb.ReplyButton{Text: "Виды руд"}
+	rK3Ore := tb.ReplyButton{Text: "Ресурсы"}
 	rK3Chest := tb.ReplyButton{Text: "Сундуки"}
 	rK3back := tb.ReplyButton{Text: "Назад 🔙"}
 	rK3 := [][]tb.ReplyButton{
 		[]tb.ReplyButton{rK3Rules, rK3Des, rK3Ore, rK3Chest, rK3back},
 	}
 
+	rK4Warrior := tb.ReplyButton{Text: "Воин"}
+	rK4Archer := tb.ReplyButton{Text: "Лучник"}
+	rK4Wizard := tb.ReplyButton{Text: "Волшебник"}
+	rK4Paladin := tb.ReplyButton{Text: "Паладин"}
+	rK4Demon := tb.ReplyButton{Text: "Демон"}
+	rK4Angel := tb.ReplyButton{Text: "Ангел"}
+	rK4back := tb.ReplyButton{Text: "Назад 🔙"}
+	rK4 := [][]tb.ReplyButton{
+		[]tb.ReplyButton{rK4Warrior, rK4Archer, rK4Wizard, rK4Paladin, rK4Demon, rK4Angel, rK4back},
+	}
 	b.Handle(&rK1Stat, func(m *tb.Message) {
 		b.Send(m.Sender, ""+m.Sender.FirstName+", Тут вы можете посмотреть общию статистику", &tb.ReplyMarkup{
 			ReplyKeyboard:       rK2,
 			ResizeReplyKeyboard: true,
 			// InlineKeyboard: inlineKeys,
 		})
+	})
+
+	b.Handle(&rK3Ore, func(m *tb.Message) {
+		b.Send(m.Sender, localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "desc"}),
+			&tb.ReplyMarkup{
+				ReplyKeyboard:       rK3,
+				ResizeReplyKeyboard: true,
+				// InlineKeyboard: inlineKeys,
+			})
 	})
 
 	b.Handle(&rK2back, func(m *tb.Message) {
@@ -74,6 +98,14 @@ func main() {
 	b.Handle(&rK1Info, func(m *tb.Message) {
 		b.Send(m.Sender, ""+m.Sender.FirstName+", Тут вы можете ознакомится с механикой игры", &tb.ReplyMarkup{
 			ReplyKeyboard:       rK3,
+			ResizeReplyKeyboard: true,
+			// InlineKeyboard: inlineKeys,
+		})
+	})
+
+	b.Handle(&rK1Start, func(m *tb.Message) {
+		b.Send(m.Sender, ""+m.Sender.FirstName+", Выберите класс,учтите у каждого класс разные навыки и бонуссы", &tb.ReplyMarkup{
+			ReplyKeyboard:       rK4,
 			ResizeReplyKeyboard: true,
 			// InlineKeyboard: inlineKeys,
 		})
