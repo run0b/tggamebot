@@ -5,6 +5,8 @@ go 1.17
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gookit/config/v2 v2.0.27
+	github.com/jmoiron/sqlx v1.3.4
+	github.com/lib/pq v1.2.0
 	github.com/nicksnyder/go-i18n/v2 v2.1.2
 	golang.org/x/text v0.3.5
 	gopkg.in/tucnak/telebot.v2 v2.5.0

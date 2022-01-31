@@ -6,10 +6,15 @@ import (
 )
 
 type Config struct {
-	TGKey string
+	TGKey      string
+	DBHost     string
+	DBPort     int
+	DBUser     string
+	DBPassword string
+	DBName     string
 }
 
-func CreateConfig() Config {
+func CreateConfig() *Config {
 	config.AddDriver(yaml.Driver)
 
 	err := config.LoadFiles("config.base.yml")
@@ -24,5 +29,5 @@ func CreateConfig() Config {
 	c := Config{}
 	err = config.BindStruct("", &c)
 
-	return c
+	return &c
 }
