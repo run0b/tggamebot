@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -34,4 +35,30 @@ func (v Database) AddUser(id int64, name string) error {
 	}
 	err = tx.Commit()
 	return err
+}
+
+func (v Database) SetUserClass(id int64, class int) error {
+	_, err := v.i.Exec("UPDATE users SET class = $1 WHERE id = $2", class, id)
+
+	return err
+}
+
+func (v Database) GetUserClass(id int64) (int, error) {
+	rows, err := v.i.Query("SELECT class FROM users WHERE id = $1", id)
+	if err != nil {
+		return -1, err
+	}
+	defer rows.Close()
+	if err != nil {
+		return -1, err
+	}
+	if !rows.Next() {
+		return -1, errors.New("No user")
+	}
+	var class int
+	if err := rows.Scan(&class); err != nil {
+		return -1, nil
+	}
+
+	return class, err
 }

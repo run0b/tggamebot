@@ -66,16 +66,6 @@ func main() {
 		[]tb.ReplyButton{rK3Rules, rK3Des, rK3Ore, rK3Chest, rK3Class, rK3back},
 	}
 
-	rK4Warrior := tb.ReplyButton{Text: "Воин"}
-	rK4Archer := tb.ReplyButton{Text: "Лучник"}
-	rK4Wizard := tb.ReplyButton{Text: "Волшебник"}
-	rK4Paladin := tb.ReplyButton{Text: "Паладин"}
-
-	rK4back := tb.ReplyButton{Text: "Назад 🔙"}
-	rK4 := [][]tb.ReplyButton{
-		[]tb.ReplyButton{rK4Warrior, rK4Archer, rK4Wizard, rK4Paladin, rK4back},
-	}
-
 	rK5Dig := tb.ReplyButton{Text: "Копать руду"}
 	rK5Сhop := tb.ReplyButton{Text: "Рубить дерево"}
 	rK5Fight := tb.ReplyButton{Text: "Убивать монстров"}
@@ -103,7 +93,7 @@ func main() {
 	})
 
 	b.Handle(&rK2back, func(m *tb.Message) {
-		b.Send(m.Sender, ""+m.Sender.FirstName+", Вы вернулись на главную страницу", &tb.ReplyMarkup{
+		b.Send(m.Sender, m.Sender.FirstName+", Вы вернулись на главную страницу", &tb.ReplyMarkup{
 			ReplyKeyboard:       rK1,
 			ResizeReplyKeyboard: true,
 			// InlineKeyboard: inlineKeys,
@@ -111,51 +101,129 @@ func main() {
 	})
 
 	b.Handle(&rK1Info, func(m *tb.Message) {
-		b.Send(m.Sender, ""+m.Sender.FirstName+", Тут вы можете ознакомится с механикой игры", &tb.ReplyMarkup{
+		b.Send(m.Sender, m.Sender.FirstName+", Тут вы можете ознакомится с механикой игры", &tb.ReplyMarkup{
 			ReplyKeyboard:       rK3,
 			ResizeReplyKeyboard: true,
 			// InlineKeyboard: inlineKeys,
 		})
 	})
 
+	// rK4Warrior := tb.ReplyButton{Text: "Воин"}
+	// rK4Archer := tb.ReplyButton{Text: "Лучник"}
+	// rK4Wizard := tb.ReplyButton{Text: "Волшебник"}
+	// rK4Paladin := tb.ReplyButton{Text: "Паладин"}
+
+	// rK4back := tb.ReplyButton{Text: "Назад 🔙"}
+	// rK4 := [][]tb.ReplyButton{
+	// 	[]tb.ReplyButton{rK4Warrior, rK4Archer, rK4Wizard, rK4Paladin, rK4back},
+	// }
+
+	var (
+		rK4        = &tb.ReplyMarkup{}
+		rK4Warrior = rK4.Data("Воин", "warrior")
+		rK4Archer  = rK4.Data("Лучник", "archer")
+		rK4Wizard  = rK4.Data("Маг", "wizard")
+		rK4Paladin = rK4.Data("Паладин", "paladin")
+	)
+
+	rK4.Inline(
+		rK4.Row(rK4Warrior),
+		rK4.Row(rK4Archer),
+		rK4.Row(rK4Wizard),
+		rK4.Row(rK4Paladin),
+	)
+
+	// b.Handle(tb.OnQuery, func(q *tb.Query) { spew.Dump(q) })
+
+	// b.Handle(&rK4Warrior, func(c *tb.Callback) {
+	// 	spew.Dump(c)
+	// 	b.Respond(c, &tb.CallbackResponse{})
+	// })
+
 	b.Handle(&rK1Start, func(m *tb.Message) {
-		b.Send(m.Sender, ""+m.Sender.FirstName+", Выберите класс,учтите у каждого класс разные навыки и бонуссы", &tb.ReplyMarkup{
-			ReplyKeyboard:       rK4,
-			ResizeReplyKeyboard: true,
-			// InlineKeyboard: inlineKeys,
-		})
+		class, err := db.GetUserClass(m.Sender.ID)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		if class != -1 {
+			className := ""
+			switch class {
+			case 0:
+				className = "Воин"
+			case 1:
+				className = "Лучник"
+			case 2:
+				className = "Маг"
+			case 3:
+				className = "Паладин"
+			}
+			b.Send(m.Sender, "Ваш класс "+className, &tb.ReplyMarkup{
+				ReplyKeyboard:       rK5,
+				ResizeReplyKeyboard: true,
+				// InlineKeyboard: inlineKeys,
+			})
+			return
+		}
+		b.Send(m.Sender, m.Sender.FirstName+", Выберите класс,учтите у каждого класс разные навыки и бонуссы", rK4)
 	})
 
-	b.Handle(&rK4Warrior, func(m *tb.Message) {
-		b.Send(m.Sender, ""+m.Sender.FirstName+", Вы выбрали Воина", &tb.ReplyMarkup{
+	selectClass := func(c *tb.Callback, classID int) {
+		class, err := db.GetUserClass(c.Sender.ID)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		if class != -1 {
+			b.Send(c.Sender, "Соси хуй, клас изменить нельзя!")
+			return
+		}
+
+		err = db.SetUserClass(c.Sender.ID, classID)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		message := ""
+		switch classID {
+		case 0:
+			message = c.Sender.FirstName + ", Вы выбрали Воина"
+		case 1:
+			message = c.Sender.FirstName + ", Вы выбрали Лучника"
+		case 2:
+			message = c.Sender.FirstName + ", Вы выбрали Мага"
+		case 3:
+			message = c.Sender.FirstName + ", Вы выбрали Паладина"
+		}
+
+		b.Send(c.Sender, message, &tb.ReplyMarkup{
 			ReplyKeyboard:       rK5,
 			ResizeReplyKeyboard: true,
 			// InlineKeyboard: inlineKeys,
 		})
+	}
+
+	b.Handle(&rK4Warrior, func(c *tb.Callback) {
+		selectClass(c, 0)
+		b.Respond(c, &tb.CallbackResponse{})
 	})
 
-	b.Handle(&rK4Archer, func(m *tb.Message) {
-		b.Send(m.Sender, ""+m.Sender.FirstName+", Вы выбрали Лучника", &tb.ReplyMarkup{
-			ReplyKeyboard:       rK5,
-			ResizeReplyKeyboard: true,
-			// InlineKeyboard: inlineKeys,
-		})
+	b.Handle(&rK4Archer, func(c *tb.Callback) {
+		selectClass(c, 1)
+		b.Respond(c, &tb.CallbackResponse{})
 	})
 
-	b.Handle(&rK4Wizard, func(m *tb.Message) {
-		b.Send(m.Sender, ""+m.Sender.FirstName+", Вы выбрали Волшебника", &tb.ReplyMarkup{
-			ReplyKeyboard:       rK5,
-			ResizeReplyKeyboard: true,
-			// InlineKeyboard: inlineKeys,
-		})
+	b.Handle(&rK4Wizard, func(c *tb.Callback) {
+		selectClass(c, 2)
+		b.Respond(c, &tb.CallbackResponse{})
 	})
 
-	b.Handle(&rK4Paladin, func(m *tb.Message) {
-		b.Send(m.Sender, ""+m.Sender.FirstName+", Вы выбрали Паладина", &tb.ReplyMarkup{
-			ReplyKeyboard:       rK5,
-			ResizeReplyKeyboard: true,
-			// InlineKeyboard: inlineKeys,
-		})
+	b.Handle(&rK4Paladin, func(c *tb.Callback) {
+		selectClass(c, 3)
+		b.Respond(c, &tb.CallbackResponse{})
 	})
 
 	b.Handle("/start", func(m *tb.Message) {
